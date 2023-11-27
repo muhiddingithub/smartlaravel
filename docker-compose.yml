@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+    smart-php-fpm:
+        container_name: smart-php-fpm-container
+        build:
+            context: .
+            dockerfile: ./docker/php-fpm/Dockerfile
+        ports:
+            - 9000:9000
+        volumes:
+            - ./:/var/www
+        depends_on:
+            - smart-postgres
+
+    smart-nginx:
+        container_name: smart-nginx-container
+        image: nginx:stable
+        ports:
+            - "8080:80"
+        volumes:
+            - ./:/var/www
+            - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+        depends_on:
+            - smart-php-fpm
+
+    smart-postgres:
+        container_name: smart-postgres-container
+        image: postgres:latest
+        environment:
+            POSTGRES_DB: ${DB_DATABASE}
+            POSTGRES_USER: ${DB_USERNAME}
+            POSTGRES_PASSWORD: ${DB_PASSWORD}
+        ports:
+            - "7432:5432"
+        volumes:
+            - smart-pg-data:/var/lib/postgresql/data
+volumes:
+    smart-pg-data:
